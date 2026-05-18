@@ -1,0 +1,17 @@
+{
+  "name": "FloraSense Dev Environment",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "api",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "sh"
+      },
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+    }
+  },
+  "forwardPorts": [3000, 5432],
+  "postCreateCommand": "npm install && npx sequelize-cli db:migrate",
+  "remoteUser": "root"
+}

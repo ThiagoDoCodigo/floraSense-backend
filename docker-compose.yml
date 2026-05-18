@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: florasense_db_dev
+    restart: unless-stopped
+    environment:
+      # Ajustado para as SUAS variáveis do .env:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_TABLE}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      target: builder
+    container_name: florasense_api_dev
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      # Essencial: aponta o host da API para o nome do container do banco
+      - DB_HOST=db
+    volumes:
+      - .:/app
+      - /app/node_modules
+    # Em DevContainers, o VS Code assume o controle, mas mantemos o fallback
+    command: sh -c "npx sequelize-cli db:migrate && tail -f /dev/null"
+
+volumes:
+  pgdata_dev:
