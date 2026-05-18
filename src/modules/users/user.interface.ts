@@ -37,4 +37,5 @@ export interface IUsersBusiness {
     params: ListUsersParams,
   ): Promise<PaginatedResponse<UserResponseDTO>>;
   deleteUserByAdmin(userId: string, id: string): Promise<void>;
+  getMe(userId: string): Promise<UserResponseDTO>;
 }

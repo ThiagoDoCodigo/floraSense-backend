@@ -30,6 +30,12 @@ export async function usersRoutes(fastify: FastifyInstance) {
   fastify.register(async (protectedInstance) => {
     protectedInstance.addHook("preHandler", protectedInstance.verifyAuthToken);
 
+    protectedInstance.get(
+      "/me",
+      {},
+      usersController.getMe.bind(usersController),
+    );
+
     protectedInstance.post<{ Body: AdminCreateUserDTO }>(
       "/admin",
       {

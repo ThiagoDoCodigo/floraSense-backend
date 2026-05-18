@@ -144,12 +144,11 @@ export class GeminiService {
 
     const prompt = `
     [CONTEXTO TÉCNICO RECUPERADO (LITERATURA)]
-    ${
-      contextText !==
-      "Nenhum dado específico encontrado no banco para esta espécie."
+    ${contextText !==
+        "Nenhum dado específico encontrado no banco para esta espécie."
         ? `Baseie sua avaliação nos seguintes limites oficiais:\n"${contextText}"`
         : "Nenhum dado específico encontrado no banco de dados. Utilize seu treinamento agronômico nativo para inferir os limites adequados."
-    }
+      }
 
     [IDENTIFICAÇÃO DO ESPÉCIME]
     - Espécie: ${plantData.especie} (Nome dado pelo usuário: ${plantData.name})

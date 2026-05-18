@@ -1,0 +1,862 @@
+{
+	"info": {
+		"_postman_id": "011c62cc-fa5f-481e-8310-d3782c4c25a2",
+		"name": "FloraSense API",
+		"description": "Coleção de rotas para teste da API FloraSense (Fastify + Sequelize + pgvector + Gemini RAG)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Autenticação",
+			"item": [
+				{
+					"name": "Login de Usuário",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"thiago@florasense.com\",\n  \"password\": \"senhaSegura123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Autentica um usuário e retorna o token de acesso (JWT) e o refresh token."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Token (Refresh)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"INSIRA_O_REFRESH_TOKEN_AQUI\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Gera um novo token de acesso utilizando um Refresh Token válido."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Usuários",
+			"item": [
+				{
+					"name": "Registrar Usuário Público (Sign Up)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Thiago Código\",\n  \"email\": \"thiago@florasense.com\",\n  \"password\": \"senhaSegura123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/public",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"public"
+							]
+						},
+						"description": "Cria um novo usuário comum no sistema."
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Usuário via Painel (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Admin FloraSense\",\n  \"email\": \"admin@florasense.com\",\n  \"password\": \"adminSenha123\",\n  \"role\": \"ADMIN\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"admin"
+							]
+						},
+						"description": "Cria um usuário especificando o papel (ADMIN ou USER). Requer autenticação Admin."
+					},
+				"response": []
+			},
+			{
+				"name": "Meu Perfil (GET /me)",
+				"request": {
+					"auth": {
+						"type": "bearer",
+						"bearer": [
+							{
+								"key": "token",
+								"value": "{{jwt_token}}",
+								"type": "string"
+							}
+						]
+					},
+					"method": "GET",
+					"header": [],
+					"url": {
+						"raw": "{{base_url}}/api/v1/users/me",
+						"host": [
+							"{{base_url}}"
+						],
+						"path": [
+							"api",
+							"v1",
+							"users",
+							"me"
+						]
+					},
+					"description": "Retorna os dados do usuário autenticado (id, name, email, role). Ideal para exibir 'Olá, Thiago!' na tela inicial do App."
+				},
+				"response": []
+			},
+			{
+				"name": "Listar Usuários (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users?limit=10&page=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Lista os usuários cadastrados com paginação. Requer privilégio de Admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Meu Perfil (Self)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Thiago Código Modificado\",\n  \"password\": \"novaSenhaSegura123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/self",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"self"
+							]
+						},
+						"description": "Atualiza os dados do próprio usuário autenticado."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Usuário (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Nome Editado pelo Admin\",\n  \"role\": \"USER\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/admin/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"admin",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "insira-id-do-usuario-aqui"
+								}
+							]
+						},
+						"description": "Atualiza qualquer usuário. Requer privilégio de Admin."
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Usuário (Admin)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/admin/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"admin",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "insira-id-do-usuario-aqui"
+								}
+							]
+						},
+						"description": "Realiza o soft-delete de um usuário específico. Requer privilégio de Admin."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Plantas",
+			"item": [
+				{
+					"name": "Cadastrar Nova Planta",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Meu Tomateiro\",\n  \"especie\": \"Solanum lycopersicum\",\n  \"phaseOfLife\": \"FRUTIFICACAO\",\n  \"environmentType\": \"EXTERNO\",\n  \"sunlightExposure\": \"SOL_PLENO\",\n  \"substrateType\": \"TERRA_COMUM\",\n  \"plantingDate\": \"2026-04-10T12:00:00Z\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/plants/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"plants",
+								""
+							]
+						},
+						"description": "Cadastra uma planta sob a posse do usuário logado. Valores válidos de enums:\n- phaseOfLife: GERMINACAO, CRESCIMENTO, FLORESCIMENTO, FRUTIFICACAO\n- environmentType: INTERNO, EXTERNO\n- sunlightExposure: SOL_PLENO, MEIA_SOMBRA, SOMBRA\n- substrateType: TERRA_COMUM, SUBSTRATO_ORGANICO, FIBRA_COCO, HIDROPONICO"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Minhas Plantas",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/plants?limit=10&page=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"plants"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Lista todas as plantas associadas ao usuário autenticado."
+					},
+					"response": []
+				},
+				{
+					"name": "Visualizar Planta Específica",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/plants/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"plants",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "insira-id-da-planta-aqui"
+								}
+							]
+						},
+						"description": "Retorna os detalhes completos de uma planta específica."
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Dados da Planta",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Meu Tomateiro Modificado\",\n  \"phaseOfLife\": \"FLORESCIMENTO\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/plants/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"plants",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "insira-id-da-planta-aqui"
+								}
+							]
+						},
+						"description": "Modifica informações de cultivo de uma planta existente."
+					},
+					"response": []
+				},
+				{
+					"name": "Excluir Planta",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/plants/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"plants",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "insira-id-da-planta-aqui"
+								}
+							]
+						},
+						"description": "Remove logicamente uma planta e desvincula telemetrias."
+					},
+					"response": []
+				},
+				{
+					"name": "Vincular Dispositivo IoT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"macAddress\": \"00:1A:2B:3C:4D:5E\",\n  \"firmwareVersion\": \"v1.0.2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/plants/:id/connect",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"plants",
+								":id",
+								"connect"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "insira-id-da-planta-aqui"
+								}
+							]
+						},
+						"description": "Vincula um endereço MAC físico e versão de firmware à planta para habilitar telemetria."
+					},
+					"response": []
+				},
+				{
+					"name": "Desvincular Dispositivo IoT",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/plants/:id/disconnect",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"plants",
+								":id",
+								"disconnect"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "insira-id-da-planta-aqui"
+								}
+							]
+						},
+						"description": "Desconecta e limpa as credenciais de IoT físicas de uma planta."
+					},
+					"response": []
+				},
+				{
+					"name": "Visualizar Indicadores do Cultivo",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/plants/indicators/by-plants",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"plants",
+								"indicators",
+								"by-plants"
+							]
+						},
+						"description": "Retorna métricas consolidadas das plantas do usuário logado."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Leituras de Sensores",
+			"item": [
+				{
+					"name": "Enviar Telemetria (Simulação Dispositivo IoT)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"plantId\": \"insira-id-da-planta-aqui\",\n  \"userId\": \"insira-id-do-usuario-dono-aqui\",\n  \"macAddress\": \"00:1A:2B:3C:4D:5E\",\n  \"soilMoisture\": 35.0,\n  \"temperature\": 24.5,\n  \"airHumidity\": 62.0,\n  \"nitrogen\": 45.0,\n  \"phosphorus\": 35.0,\n  \"potassium\": 55.0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/sensor-readings/",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-readings",
+								""
+							]
+						},
+						"description": "Simula um hardware IoT enviando telemetria. Aciona o RAG agronômico no banco e invoca a API do Gemini para obter diagnósticos em tempo real."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Histórico por Planta",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sensor-readings/plant/:plantId?limit=15&page=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-readings",
+								"plant",
+								":plantId"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "15"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							],
+							"variable": [
+								{
+									"key": "plantId",
+									"value": "insira-id-da-planta-aqui"
+								}
+							]
+						},
+						"description": "Recupera com paginação o histórico de telemetria e diagnósticos de IA salvos de uma planta."
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Alertas Urgentes Não Lidos",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sensor-readings/urgent?limit=10&page=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-readings",
+								"urgent"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Retorna uma lista paginada dos alertas fitossanitários mais graves classificados pela IA que ainda não foram marcados como lidos pelo usuário."
+					},
+					"response": []
+				},
+				{
+					"name": "Marcar Alerta como Lido",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/sensor-readings/:id/read",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"sensor-readings",
+								":id",
+								"read"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "insira-id-da-leitura-alerta-aqui"
+								}
+							]
+						},
+						"description": "Sinaliza que um alerta de telemetria urgente foi visualizado pelo dono da planta."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "insira_jwt_recebido_no_login_aqui",
+			"type": "string"
+		}
+	]
+}

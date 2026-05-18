@@ -221,4 +221,18 @@ export class UsersBusiness implements IUsersBusiness {
       handleSequelizeError(err, "Exclusão de Usuário");
     }
   }
+
+  public async getMe(userId: string): Promise<UserResponseDTO> {
+    try {
+      const user = await this.usersService.findById(userId);
+
+      if (!user) {
+        throw new CustomError("Usuário não encontrado.", 404);
+      }
+
+      return this.formatResponse(user);
+    } catch (err) {
+      handleSequelizeError(err, "Busca de Perfil");
+    }
+  }
 }

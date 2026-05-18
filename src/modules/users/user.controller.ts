@@ -120,4 +120,21 @@ export class UsersController {
       return sendError(reply, err);
     }
   }
+
+  public async getMe(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const userId = request.authUser?.id_user;
+      if (!userId) {
+        throw new CustomError(
+          "Não foi possível identificar o usuário autenticado.",
+          401,
+        );
+      }
+
+      const result = await this.usersBusiness.getMe(userId);
+      return reply.code(200).send(result);
+    } catch (err: unknown) {
+      return sendError(reply, err);
+    }
+  }
 }
