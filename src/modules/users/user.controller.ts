@@ -121,6 +121,26 @@ export class UsersController {
     }
   }
 
+  public async changePassword(
+    request: FastifyRequest<{ Body: import("./user.types").ChangePasswordDTO }>,
+    reply: FastifyReply,
+  ) {
+    try {
+      const userId = request.authUser?.id_user;
+      if (!userId) {
+        throw new CustomError(
+          "Não foi possível identificar o usuário autenticado.",
+          401,
+        );
+      }
+
+      await this.usersBusiness.changePassword(userId, request.body);
+      return reply.code(204).send();
+    } catch (err: unknown) {
+      return sendError(reply, err);
+    }
+  }
+
   public async getMe(request: FastifyRequest, reply: FastifyReply) {
     try {
       const userId = request.authUser?.id_user;

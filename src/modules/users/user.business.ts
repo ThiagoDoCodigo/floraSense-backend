@@ -222,6 +222,47 @@ export class UsersBusiness implements IUsersBusiness {
     }
   }
 
+  public async changePassword(
+    userId: string,
+    data: import("./user.types").ChangePasswordDTO,
+  ): Promise<void> {
+    try {
+      const user = await this.usersService.findWithPasswordById(userId);
+      if (!user) {
+        throw new CustomError("Sua conta não foi encontrada.", 404);
+      }
+
+      const isPasswordValid = await bcrypt.compare(
+        data.currentPassword,
+        user.password,
+      );
+      if (!isPasswordValid) {
+        throw new CustomError("A senha atual informada está incorreta.", 401);
+      }
+
+      if (data.currentPassword === data.newPassword) {
+        throw new CustomError(
+          "A nova senha não pode ser igual à senha atual.",
+          400,
+        );
+      }
+
+      const hashedNewPassword = await bcrypt.hash(
+        data.newPassword,
+        this.SALT_ROUNDS,
+      );
+
+      const [affectedCount] = await this.usersService.update(userId, {
+        password: hashedNewPassword,
+      });
+      if (affectedCount === 0) {
+        throw new CustomError("Falha ao atualizar sua senha.", 500);
+      }
+    } catch (err) {
+      handleSequelizeError(err, "Alteração de Senha Pessoal");
+    }
+  }
+
   public async getMe(userId: string): Promise<UserResponseDTO> {
     try {
       const user = await this.usersService.findById(userId);

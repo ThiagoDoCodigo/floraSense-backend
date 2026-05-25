@@ -38,3 +38,8 @@ export type ListUsersParams = {
   name?: string;
   role?: string;
 };
+
+export type ChangePasswordDTO = {
+  currentPassword: string;
+  newPassword: string;
+};

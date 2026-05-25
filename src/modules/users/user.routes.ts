@@ -7,6 +7,7 @@ import {
   deleteUserSchema,
   updateUserSchemaSelf,
   createUserSchemaPublic,
+  changePasswordSchema,
 } from "./user.schema";
 import { requireRole } from "../../middlewares/roleGuard";
 import {
@@ -84,6 +85,14 @@ export async function usersRoutes(fastify: FastifyInstance) {
         preHandler: requireRole([UserRole.ADMIN], "excluir usuários"),
       },
       usersController.deleteAdmin.bind(usersController),
+    );
+
+    protectedInstance.patch<{ Body: import("./user.types").ChangePasswordDTO }>(
+      "/self/password",
+      {
+        schema: changePasswordSchema,
+      },
+      usersController.changePassword.bind(usersController),
     );
   });
 }

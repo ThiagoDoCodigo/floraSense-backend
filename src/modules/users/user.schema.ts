@@ -258,3 +258,36 @@ export const deleteUserSchema: FastifySchema = {
     },
   },
 };
+
+export const changePasswordSchema: FastifySchema = {
+  body: {
+    type: "object",
+    required: ["currentPassword", "newPassword"],
+    properties: {
+      currentPassword: {
+        type: "string",
+        minLength: 1,
+        errorMessage: {
+          type: "A senha atual deve ser um texto",
+          minLength: "A senha atual é obrigatória",
+        },
+      },
+      newPassword: {
+        type: "string",
+        minLength: 6,
+        errorMessage: {
+          type: "A nova senha deve ser um texto válido",
+          minLength: "A nova senha deve ter no mínimo 6 caracteres",
+        },
+      },
+    },
+    additionalProperties: false,
+    errorMessage: {
+      required: {
+        currentPassword: "A senha atual é obrigatória.",
+        newPassword: "A nova senha é obrigatória.",
+      },
+      additionalProperties: "Foram enviados campos não reconhecidos.",
+    },
+  },
+};

@@ -63,4 +63,8 @@ export class UsersService implements IUsersService {
   public async delete(id: string): Promise<number> {
     return await User.destroy({ where: { id } });
   }
+
+  public async findWithPasswordById(id: string): Promise<User | null> {
+    return await User.unscoped().findByPk(id);
+  }
 }
