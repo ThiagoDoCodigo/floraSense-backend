@@ -80,3 +80,7 @@ export type DashboardIndicatorsDTO = {
   averageSoilMoisture: number;
   averageTemperature: number;
 };
+
+export type UpdateIntervalDTO = {
+  intervalMinutes: number;
+};

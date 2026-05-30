@@ -13,6 +13,7 @@ import { Plant } from "./models/plant.model";
 import { handleSequelizeError } from "../../utils/errors/handleSequelizeError";
 import { CustomError } from "../../utils/errors/CustomError";
 import { UserRole } from "../users/user.types";
+import { plantSocketManager } from "./plants.sockets";
 
 export class PlantsBusiness implements IPlantsBusiness {
   private readonly plantsService: PlantsService;
@@ -205,9 +206,10 @@ export class PlantsBusiness implements IPlantsBusiness {
   ): Promise<PlantResponseDTO> {
     try {
       const plant = await this.plantsService.findById(plantId);
-
       if (!plant) throw new CustomError("Planta não encontrada.", 404);
       this.checkOwnership(plant, userId, userRole);
+
+      plantSocketManager.sendCommand(plantId, { command: "disconnect" });
 
       const updateData = {
         isConnected: false,
@@ -215,17 +217,16 @@ export class PlantsBusiness implements IPlantsBusiness {
         firmwareVersion: null,
         lastConnectionDate: null,
       };
-
       const [affectedCount, [updatedPlant]] = await this.plantsService.update(
         plantId,
         updateData,
       );
+
       if (affectedCount === 0)
         throw new CustomError("Falha ao desvincular o dispositivo.", 500);
-
       return this.formatResponse(updatedPlant);
     } catch (err) {
-      handleSequelizeError(err, "Desconexão de Dispositivo IoT");
+      handleSequelizeError(err, "Desconexão de IoT");
     }
   }
 
@@ -236,6 +237,53 @@ export class PlantsBusiness implements IPlantsBusiness {
       return await this.plantsService.getDashboardIndicators(userId);
     } catch (err) {
       handleSequelizeError(err, "Busca de Indicadores do Dashboard");
+    }
+  }
+
+  public async updateDeviceInterval(
+    userId: string,
+    userRole: string,
+    plantId: string,
+    intervalMinutes: number,
+  ) {
+    try {
+      const plant = await this.plantsService.findById(plantId);
+      if (!plant) throw new CustomError("Planta não encontrada.", 404);
+      this.checkOwnership(plant, userId, userRole);
+
+      const isOnline = plantSocketManager.sendCommand(plantId, {
+        readingIntervalMinutes: intervalMinutes,
+      });
+      if (!isOnline) throw new CustomError("O módulo está offline.", 503);
+
+      return { message: "Ciclo atualizado no microcontrolador." };
+    } catch (err) {
+      handleSequelizeError(err, "Atualização de Delay");
+    }
+  }
+
+  public async forceDeviceReading(
+    userId: string,
+    userRole: string,
+    plantId: string,
+  ) {
+    try {
+      const plant = await this.plantsService.findById(plantId);
+      if (!plant) throw new CustomError("Planta não encontrada.", 404);
+      this.checkOwnership(plant, userId, userRole);
+
+      const isOnline = plantSocketManager.sendCommand(plantId, {
+        command: "force_reading",
+      });
+      if (!isOnline)
+        throw new CustomError(
+          "Módulo offline. Verifique a conexão Wi-Fi do hardware.",
+          503,
+        );
+
+      return { message: "Comando enviado. A leitura chegará em instantes." };
+    } catch (err) {
+      handleSequelizeError(err, "Forçar Leitura");
     }
   }
 }

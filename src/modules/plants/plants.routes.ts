@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import fastifyWebSocket from "@fastify/websocket";
 import { plantsController } from "./plants.container";
 import {
   createPlantSchema,
@@ -7,6 +8,8 @@ import {
   getOrDeletePlantSchema,
   connectDeviceSchema,
   getIndicatorsSchema,
+  updateIntervalSchema,
+  actionDeviceSchema,
 } from "./plants.schema";
 import { requireRole } from "../../middlewares/roleGuard";
 import { UserRole } from "../users/user.types";
@@ -16,8 +19,30 @@ import {
   ListPlantsParams,
   ConnectDeviceDTO,
 } from "./plants.types";
+import { plantSocketManager } from "./plants.sockets";
 
 export async function plantsRoutes(fastify: FastifyInstance) {
+  await fastify.register(fastifyWebSocket);
+
+  fastify.get("/ws/device", { websocket: true }, (socket: any, req) => {
+    const query = req.query as { plantId?: string };
+
+    if (!query.plantId) {
+      socket.close(4001, "Plant ID missing.");
+      return;
+    }
+
+    plantSocketManager.registerSocket(query.plantId, socket);
+
+    socket.on("close", () =>
+      plantSocketManager.removeSocket(query.plantId as string),
+    );
+
+    socket.on("error", () =>
+      plantSocketManager.removeSocket(query.plantId as string),
+    );
+  });
+
   fastify.register(async (protectedInstance) => {
     protectedInstance.addHook("preHandler", protectedInstance.verifyAuthToken);
 
@@ -100,6 +125,27 @@ export async function plantsRoutes(fastify: FastifyInstance) {
         preHandler: requireRole([UserRole.USER], "visualizar indicadores"),
       },
       plantsController.getIndicators.bind(plantsController),
+    );
+
+    protectedInstance.patch<{
+      Params: { id: string };
+      Body: import("./plants.types").UpdateIntervalDTO;
+    }>(
+      "/:id/interval",
+      {
+        schema: updateIntervalSchema,
+        preHandler: requireRole([UserRole.USER], "ajustar delay"),
+      },
+      plantsController.updateInterval.bind(plantsController),
+    );
+
+    protectedInstance.post<{ Params: { id: string } }>(
+      "/:id/force-reading",
+      {
+        schema: actionDeviceSchema,
+        preHandler: requireRole([UserRole.USER], "forçar leitura"),
+      },
+      plantsController.forceReading.bind(plantsController),
     );
   });
 }

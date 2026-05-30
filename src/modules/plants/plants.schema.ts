@@ -314,3 +314,25 @@ export const getIndicatorsSchema: FastifySchema = {
     },
   },
 };
+
+export const updateIntervalSchema: FastifySchema = {
+  params: {
+    type: "object",
+    required: ["id"],
+    properties: { id: { type: "string", format: "uuid" } },
+  },
+  body: {
+    type: "object",
+    required: ["intervalMinutes"],
+    properties: { intervalMinutes: { type: "integer", minimum: 15 } },
+    additionalProperties: false,
+  },
+};
+
+export const actionDeviceSchema: FastifySchema = {
+  params: {
+    type: "object",
+    required: ["id"],
+    properties: { id: { type: "string", format: "uuid" } },
+  },
+};
