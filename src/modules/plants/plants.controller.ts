@@ -159,4 +159,42 @@ export class PlantsController {
       return sendError(reply, err);
     }
   }
+
+  public async updateInterval(
+    request: FastifyRequest<{
+      Params: { id: string };
+      Body: import("./plants.types").UpdateIntervalDTO;
+    }>,
+    reply: FastifyReply,
+  ) {
+    try {
+      const { userId, userRole } = this.getAuthData(request);
+      const result = await this.plantsBusiness.updateDeviceInterval(
+        userId,
+        userRole,
+        request.params.id,
+        request.body.intervalMinutes,
+      );
+      return reply.code(200).send(result);
+    } catch (err: unknown) {
+      return sendError(reply, err);
+    }
+  }
+
+  public async forceReading(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+  ) {
+    try {
+      const { userId, userRole } = this.getAuthData(request);
+      const result = await this.plantsBusiness.forceDeviceReading(
+        userId,
+        userRole,
+        request.params.id,
+      );
+      return reply.code(200).send(result);
+    } catch (err: unknown) {
+      return sendError(reply, err);
+    }
+  }
 }
