@@ -43,6 +43,12 @@ export class SensorReadingsBusiness implements ISensorReadingsBusiness {
       parametersIdeas: reading.parametersIdeas,
       levelUrgent: reading.levelUrgent,
       created_at: reading.created_at,
+      plant: reading.plant
+        ? {
+            name: reading.plant.name,
+            especie: reading.plant.especie,
+          }
+        : undefined,
     };
   }
 
