@@ -30,6 +30,7 @@ export interface PlantAttributes {
   macAddress: string | null;
   firmwareVersion: string | null;
   lastConnectionDate: Date | null;
+  delayReading: number;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -57,6 +58,7 @@ export class Plant
   public macAddress!: string | null;
   public firmwareVersion!: string | null;
   public lastConnectionDate!: Date | null;
+  public delayReading!: number;
 
   public created_at!: Date;
   public updated_at!: Date;
@@ -131,6 +133,11 @@ export function initPlantModel(sequelize: Sequelize) {
       lastConnectionDate: {
         type: DataTypes.DATE,
         allowNull: true,
+      },
+      delayReading: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        defaultValue: 480,
       },
       created_at: {
         type: DataTypes.DATE,

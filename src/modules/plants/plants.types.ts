@@ -45,6 +45,7 @@ export type CreatePlantDTO = {
   macAddress: string | null;
   firmwareVersion: string | null;
   lastConnectionDate: Date | null;
+  delayReading: number;
 };
 
 export type UpdatePlantDTO = Partial<CreatePlantDTO>;
@@ -52,6 +53,7 @@ export type UpdatePlantDTO = Partial<CreatePlantDTO>;
 export type PlantResponseDTO = CreatePlantDTO & {
   id: string;
   userId: string;
+  delayReading: number;
   created_at: Date;
   updated_at: Date;
   user?: {

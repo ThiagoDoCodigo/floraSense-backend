@@ -39,6 +39,7 @@ export class PlantsBusiness implements IPlantsBusiness {
       macAddress: plant.macAddress,
       firmwareVersion: plant.firmwareVersion,
       lastConnectionDate: plant.lastConnectionDate,
+      delayReading: plant.delayReading,
       user: plant.user
         ? {
             name: plant.user.name,
@@ -210,6 +211,7 @@ export class PlantsBusiness implements IPlantsBusiness {
       this.checkOwnership(plant, userId, userRole);
 
       plantSocketManager.sendCommand(plantId, { command: "disconnect" });
+      plantSocketManager.removeSocket(plantId);
 
       const updateData = {
         isConnected: false,
@@ -255,6 +257,10 @@ export class PlantsBusiness implements IPlantsBusiness {
         readingIntervalMinutes: intervalMinutes,
       });
       if (!isOnline) throw new CustomError("O módulo está offline.", 503);
+
+      await this.plantsService.update(plantId, {
+        delayReading: intervalMinutes,
+      });
 
       return { message: "Ciclo atualizado no microcontrolador." };
     } catch (err) {

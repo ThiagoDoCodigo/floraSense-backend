@@ -76,7 +76,7 @@ export class SensorReadingsService implements ISensorReadingsService {
           model: Plant,
           as: "plant",
           where: { userId },
-          attributes: ["id", "name"],
+          attributes: ["id", "name", "especie"],
         },
       ],
     });
