@@ -11,7 +11,7 @@ import websocketSetup from "./utils/plugins/websocket.setup";
 dotenv.config();
 
 export const app = Fastify({
-  logger: false,
+  logger: true,
   ajv: {
     customOptions: {
       coerceTypes: true,
