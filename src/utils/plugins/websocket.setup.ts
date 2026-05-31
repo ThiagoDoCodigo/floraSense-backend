@@ -14,11 +14,10 @@ declare module "fastify" {
 export default fp(async (fastify: FastifyInstance) => {
   // 1. Registra o Socket.io no Fastify
   await fastify.register(fastifySocketIO, {
-    cors: { origin: "*" }, // Em produção, restrinja para o seu App/Web
+    cors: { origin: "*" },
   });
 
-  // 2. Middleware de Autenticação do Socket (Intercepta antes de conectar)
-  // 3. NOVO: Tipamos o "socket" e a função "next" explicitamente
+  // 2. Middleware de Autenticação do Socket
   fastify.io.use((socket: Socket, next: (err?: Error) => void) => {
     const token =
       socket.handshake.auth?.token ||
@@ -29,14 +28,12 @@ export default fp(async (fastify: FastifyInstance) => {
     }
 
     try {
-      // CORREÇÃO: Usamos o verificador nativo do fastify.jwt!
-      // Ele já sabe exatamente qual é o seu JWT_SECRET e o algoritmo usado na hora do Login.
+      // Usamos o verificador nativo do fastify.jwt
       const decoded = fastify.jwt.verify(token) as any;
 
       socket.data.user = { id: decoded.id_user, role: decoded.role };
       next();
     } catch (err: any) {
-      // Deixei esse console.log para você ver no terminal do Render o motivo exato caso falhe (ex: "jwt expired")
       console.log("[WS Auth Error]:", err.message);
       return next(new Error("Autenticação WebSocket negada: Token inválido."));
     }
@@ -44,10 +41,9 @@ export default fp(async (fastify: FastifyInstance) => {
 
   // 3. Gerenciamento de Conexões e Salas
   fastify.io.on("connection", (socket: Socket) => {
-    // Tipagem extra aqui também
     const userId = socket.data.user.id;
 
-    // A: Coloca o usuário na sua sala pessoal (Para receber notificações globais/urgentes)
+    // A: Coloca o usuário na sua sala pessoal
     socket.join(`user_${userId}`);
     console.log(`🔌 Usuário conectado ao WS: ${userId}`);
 
@@ -56,7 +52,7 @@ export default fp(async (fastify: FastifyInstance) => {
       try {
         const plant = await Plant.findByPk(payload.plantId);
 
-        // VALIDAÇÃO DE POSSE: O usuário logado é realmente o dono desta planta?
+        // VALIDAÇÃO DE POSSE
         if (
           !plant ||
           (plant.userId !== userId && socket.data.user.role !== "ADMIN")
@@ -65,7 +61,6 @@ export default fp(async (fastify: FastifyInstance) => {
           return;
         }
 
-        // Entra na sala específica da planta
         socket.join(`plant_${payload.plantId}`);
         socket.emit("joined_plant", { plantId: payload.plantId });
       } catch (error) {
@@ -90,13 +85,15 @@ export default fp(async (fastify: FastifyInstance) => {
     // A: Atualiza a lista de quem está com a tela da planta ABERTA
     fastify.io.to(`plant_${plantId}`).emit("new_sensor_reading", reading);
 
-    // B: Se for urgente, manda notificação push/in-app APENAS para o dono da planta
+    // B: Se for urgente, manda notificação E O OBJETO COMPLETO para o dono da planta
     if (reading.isUrgent) {
       fastify.io.to(`user_${userId}`).emit("urgent_alert", {
+        // Campos para a Notificação Push nativa do celular
         title: "Atenção necessária!",
-        message: `Sua planta requer atenção: ${reading.aiDiagnosis}`,
+        message: `A IA detectou um risco e requer sua atenção.`,
         readingId: reading.id,
-        level: reading.levelUrgent,
+        // Espalha TODOS os dados da leitura (...reading) para montar o Card no Frontend!
+        ...reading,
       });
     }
   });
