@@ -14,6 +14,7 @@ import { handleSequelizeError } from "../../utils/errors/handleSequelizeError";
 import { CustomError } from "../../utils/errors/CustomError";
 import { UserRole } from "../users/user.types";
 import { plantSocketManager } from "./plants.sockets";
+import storageService from "../../services/storange/storage.service";
 
 export class PlantsBusiness implements IPlantsBusiness {
   private readonly plantsService: PlantsService;
@@ -33,6 +34,7 @@ export class PlantsBusiness implements IPlantsBusiness {
       sunlightExposure: plant.sunlightExposure,
       substrateType: plant.substrateType,
       plantingDate: plant.plantingDate,
+      imageUrl: plant.imageUrl || null,
       created_at: plant.created_at,
       updated_at: plant.updated_at,
       isConnected: plant.isConnected,
@@ -61,9 +63,21 @@ export class PlantsBusiness implements IPlantsBusiness {
   public async createPlant(
     userId: string,
     data: CreatePlantDTO,
+    file?: { buffer: Buffer; mimetype: string },
   ): Promise<PlantResponseDTO> {
     try {
-      const plant = await this.plantsService.create(userId, data);
+      const plant = await this.plantsService.create(userId, {
+        ...data,
+        imageUrl: null,
+      });
+
+      if (file) {
+        await storageService.uploadImage(plant.id, file.buffer, file.mimetype);
+        const url = storageService.getImageUrl(plant.id, new Date());
+        await this.plantsService.update(plant.id, { imageUrl: url });
+        plant.imageUrl = url;
+      }
+
       return this.formatResponse(plant);
     } catch (err) {
       handleSequelizeError(err, "Criação de Planta");
@@ -75,24 +89,25 @@ export class PlantsBusiness implements IPlantsBusiness {
     userRole: string,
     plantId: string,
     data: UpdatePlantDTO,
+    file?: { buffer: Buffer; mimetype: string },
   ): Promise<PlantResponseDTO> {
     try {
       const plant = await this.plantsService.findById(plantId);
 
-      if (!plant) {
-        throw new CustomError("Planta não encontrada.", 404);
-      }
-
+      if (!plant) throw new CustomError("Planta não encontrada.", 404);
       this.checkOwnership(plant, userId, userRole);
 
-      const [affectedCount, [updatedPlant]] = await this.plantsService.update(
-        plantId,
-        data,
-      );
-
-      if (affectedCount === 0) {
-        throw new CustomError("Falha ao atualizar a planta.", 500);
+      if (file) {
+        await storageService.uploadImage(plantId, file.buffer, file.mimetype);
+        data.imageUrl = storageService.getImageUrl(plantId, new Date());
       }
+
+      const updateResult = await this.plantsService.update(plantId, data);
+
+      const updatedPlant =
+        updateResult[1] && updateResult[1].length > 0
+          ? updateResult[1][0]
+          : await this.plantsService.findById(plantId);
 
       return this.formatResponse(updatedPlant);
     } catch (err) {
@@ -107,13 +122,8 @@ export class PlantsBusiness implements IPlantsBusiness {
   ): Promise<PlantResponseDTO> {
     try {
       const plant = await this.plantsService.findById(plantId);
-
-      if (!plant) {
-        throw new CustomError("Planta não encontrada.", 404);
-      }
-
+      if (!plant) throw new CustomError("Planta não encontrada.", 404);
       this.checkOwnership(plant, userId, userRole);
-
       return this.formatResponse(plant);
     } catch (err) {
       handleSequelizeError(err, "Busca de Planta por ID");
@@ -127,10 +137,7 @@ export class PlantsBusiness implements IPlantsBusiness {
   ): Promise<PaginatedResponse<PlantResponseDTO>> {
     try {
       const filterParams = { ...params };
-
-      if (userRole !== UserRole.ADMIN) {
-        filterParams.userId = userId;
-      }
+      if (userRole !== UserRole.ADMIN) filterParams.userId = userId;
 
       const { rows, count } =
         await this.plantsService.findAllPaginated(filterParams);
@@ -155,12 +162,10 @@ export class PlantsBusiness implements IPlantsBusiness {
   ): Promise<void> {
     try {
       const plant = await this.plantsService.findById(plantId);
-
-      if (!plant) {
-        throw new CustomError("Planta não encontrada.", 404);
-      }
-
+      if (!plant) throw new CustomError("Planta não encontrada.", 404);
       this.checkOwnership(plant, userId, userRole);
+
+      await storageService.deleteImage(plantId);
 
       await this.plantsService.delete(plantId);
     } catch (err) {

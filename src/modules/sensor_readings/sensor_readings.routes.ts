@@ -21,7 +21,7 @@ export async function sensorReadingsRoutes(fastify: FastifyInstance) {
     readingsController.processReading.bind(readingsController),
   );
 
-  fastify.register(async (protectedInstance) => {
+  fastify.register(async (protectedInstance: FastifyInstance) => {
     protectedInstance.addHook("preHandler", protectedInstance.verifyAuthToken);
 
     protectedInstance.get<{

@@ -31,6 +31,7 @@ export interface PlantAttributes {
   firmwareVersion: string | null;
   lastConnectionDate: Date | null;
   delayReading: number;
+  imageUrl: string | null;
   created_at: Date;
   updated_at: Date;
   deleted_at: Date | null;
@@ -38,7 +39,7 @@ export interface PlantAttributes {
 
 export type PlantCreationAttributes = Optional<
   PlantAttributes,
-  "id" | "created_at" | "updated_at" | "deleted_at"
+  "id" | "created_at" | "updated_at" | "deleted_at" | "imageUrl"
 >;
 
 export class Plant
@@ -59,6 +60,7 @@ export class Plant
   public firmwareVersion!: string | null;
   public lastConnectionDate!: Date | null;
   public delayReading!: number;
+  public imageUrl!: string | null;
 
   public created_at!: Date;
   public updated_at!: Date;
@@ -138,6 +140,10 @@ export function initPlantModel(sequelize: Sequelize) {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 480,
+      },
+      imageUrl: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       created_at: {
         type: DataTypes.DATE,
