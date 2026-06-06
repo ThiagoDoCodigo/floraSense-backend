@@ -7,86 +7,22 @@ import {
 } from "./plants.types";
 
 export const createPlantSchema: FastifySchema = {
-  body: {
+  headers: {
     type: "object",
-    required: [
-      "name",
-      "especie",
-      "phaseOfLife",
-      "environmentType",
-      "sunlightExposure",
-      "substrateType",
-    ],
+    required: ["content-type"],
     properties: {
-      name: {
+      "content-type": {
         type: "string",
-        minLength: 2,
+        pattern: "^multipart/form-data",
         errorMessage: {
-          type: "O nome deve ser um texto válido",
-          minLength: "O nome da planta deve ter no mínimo 2 caracteres",
-        },
-      },
-      especie: {
-        type: "string",
-        minLength: 2,
-        errorMessage: {
-          type: "A espécie deve ser um texto válido",
-          minLength: "A espécie deve ter no mínimo 2 caracteres",
-        },
-      },
-      phaseOfLife: {
-        type: "string",
-        enum: Object.values(PlantPhaseEnum),
-        errorMessage: {
-          type: "A fase de vida deve ser um texto válido",
-          enum: `A fase de vida informada é inválida. Deve ser: ${Object.values(PlantPhaseEnum).join(", ")}.`,
-        },
-      },
-      environmentType: {
-        type: "string",
-        enum: Object.values(EnvironmentTypeEnum),
-        errorMessage: {
-          type: "O tipo de ambiente deve ser um texto",
-          enum: `Tipo de ambiente inválido. Deve ser: ${Object.values(EnvironmentTypeEnum).join(", ")}.`,
-        },
-      },
-      sunlightExposure: {
-        type: "string",
-        enum: Object.values(SunlightExposureEnum),
-        errorMessage: {
-          type: "A exposição solar deve ser um texto",
-          enum: `Exposição solar inválida. Deve ser: ${Object.values(SunlightExposureEnum).join(", ")}.`,
-        },
-      },
-      substrateType: {
-        type: "string",
-        enum: Object.values(SubstrateTypeEnum),
-        errorMessage: {
-          type: "O tipo de substrato deve ser um texto",
-          enum: `Tipo de substrato inválido. Deve ser: ${Object.values(SubstrateTypeEnum).join(", ")}.`,
-        },
-      },
-      plantingDate: {
-        type: "string",
-        format: "date-time",
-        errorMessage: {
-          type: "A data de plantio deve ser um texto (ISO 8601)",
-          format: "A data de plantio informada é inválida.",
+          pattern: "O tipo de conteúdo deve ser multipart/form-data.",
         },
       },
     },
-    additionalProperties: false,
     errorMessage: {
       required: {
-        name: "O nome da planta é obrigatório.",
-        especie: "A espécie da planta é obrigatória.",
-        phaseOfLife: "A fase de vida da planta é obrigatória.",
-        environmentType: "O tipo de ambiente é obrigatório.",
-        sunlightExposure: "A exposição solar é obrigatória.",
-        substrateType: "O tipo de substrato é obrigatório.",
+        "content-type": "O cabeçalho Content-Type é obrigatório.",
       },
-      additionalProperties:
-        "Foram enviados campos não reconhecidos no corpo da requisição.",
     },
   },
 };
@@ -109,72 +45,22 @@ export const updatePlantSchema: FastifySchema = {
       required: { id: "O ID da planta é obrigatório." },
     },
   },
-  body: {
+  headers: {
     type: "object",
-    minProperties: 1,
+    required: ["content-type"],
     properties: {
-      name: {
+      "content-type": {
         type: "string",
-        minLength: 2,
+        pattern: "^multipart/form-data",
         errorMessage: {
-          type: "O nome deve ser um texto válido",
-          minLength: "O nome da planta deve ter no mínimo 2 caracteres",
-        },
-      },
-      especie: {
-        type: "string",
-        minLength: 2,
-        errorMessage: {
-          type: "A espécie deve ser um texto válido",
-          minLength: "A espécie deve ter no mínimo 2 caracteres",
-        },
-      },
-      phaseOfLife: {
-        type: "string",
-        enum: Object.values(PlantPhaseEnum),
-        errorMessage: {
-          type: "A fase de vida deve ser um texto válido",
-          enum: `A fase de vida informada é inválida. Deve ser: ${Object.values(PlantPhaseEnum).join(", ")}.`,
-        },
-      },
-      environmentType: {
-        type: "string",
-        enum: Object.values(EnvironmentTypeEnum),
-        errorMessage: {
-          type: "O tipo de ambiente deve ser um texto",
-          enum: `Tipo de ambiente inválido. Deve ser: ${Object.values(EnvironmentTypeEnum).join(", ")}.`,
-        },
-      },
-      sunlightExposure: {
-        type: "string",
-        enum: Object.values(SunlightExposureEnum),
-        errorMessage: {
-          type: "A exposição solar deve ser um texto",
-          enum: `Exposição solar inválida. Deve ser: ${Object.values(SunlightExposureEnum).join(", ")}.`,
-        },
-      },
-      substrateType: {
-        type: "string",
-        enum: Object.values(SubstrateTypeEnum),
-        errorMessage: {
-          type: "O tipo de substrato deve ser um texto",
-          enum: `Tipo de substrato inválido. Deve ser: ${Object.values(SubstrateTypeEnum).join(", ")}.`,
-        },
-      },
-      plantingDate: {
-        type: "string",
-        format: "date-time",
-        errorMessage: {
-          type: "A data de plantio deve ser um texto (ISO 8601)",
-          format: "A data de plantio informada é inválida.",
+          pattern: "O tipo de conteúdo deve ser multipart/form-data.",
         },
       },
     },
-    additionalProperties: false,
     errorMessage: {
-      minProperties: "É necessário enviar ao menos um campo para atualização.",
-      additionalProperties:
-        "Foram enviados campos não reconhecidos no corpo da requisição.",
+      required: {
+        "content-type": "O cabeçalho Content-Type é obrigatório.",
+      },
     },
   },
 };
@@ -223,7 +109,7 @@ export const listPlantsSchema: FastifySchema = {
         type: "string",
         enum: Object.values(PlantPhaseEnum),
         errorMessage: {
-          enum: `Filtro de fase de vida inválido.`,
+          enum: "Filtro de fase de vida inválido.",
         },
       },
       userId: {

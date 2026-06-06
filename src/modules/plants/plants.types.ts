@@ -46,6 +46,7 @@ export type CreatePlantDTO = {
   firmwareVersion: string | null;
   lastConnectionDate: Date | null;
   delayReading: number;
+  imageUrl?: string | null;
 };
 
 export type UpdatePlantDTO = Partial<CreatePlantDTO>;
@@ -54,6 +55,7 @@ export type PlantResponseDTO = CreatePlantDTO & {
   id: string;
   userId: string;
   delayReading: number;
+  imageUrl: string | null;
   created_at: Date;
   updated_at: Date;
   user?: {

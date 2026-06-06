@@ -9,6 +9,14 @@ import {
   ConnectDeviceDTO,
 } from "./plants.types";
 
+const streamToBuffer = async (stream: any): Promise<Buffer> => {
+  const chunks = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+};
+
 export class PlantsController {
   private readonly plantsBusiness: PlantsBusiness;
 
@@ -30,15 +38,32 @@ export class PlantsController {
     return { userId, userRole };
   }
 
-  public async create(
-    request: FastifyRequest<{ Body: CreatePlantDTO }>,
-    reply: FastifyReply,
-  ) {
+  public async create(request: FastifyRequest, reply: FastifyReply) {
     try {
       const { userId } = this.getAuthData(request);
+      const parts = request.parts();
+      let fileMeta: any = undefined;
+      const bodyData: any = {};
+
+      for await (const part of parts) {
+        if (part.type === "file") {
+          const buffer = await streamToBuffer(part.file);
+          if (buffer.length > 0) {
+            fileMeta = {
+              buffer,
+              mimetype: part.mimetype,
+              filename: part.filename,
+            };
+          }
+        } else {
+          bodyData[part.fieldname] = part.value;
+        }
+      }
+
       const result = await this.plantsBusiness.createPlant(
         userId,
-        request.body,
+        bodyData as CreatePlantDTO,
+        fileMeta,
       );
       return reply.code(201).send(result);
     } catch (err: unknown) {
@@ -47,16 +72,36 @@ export class PlantsController {
   }
 
   public async update(
-    request: FastifyRequest<{ Body: UpdatePlantDTO; Params: { id: string } }>,
+    request: FastifyRequest<{ Params: { id: string } }>,
     reply: FastifyReply,
   ) {
     try {
       const { userId, userRole } = this.getAuthData(request);
+      const parts = request.parts();
+      let fileMeta: any = undefined;
+      const bodyData: any = {};
+
+      for await (const part of parts) {
+        if (part.type === "file") {
+          const buffer = await streamToBuffer(part.file);
+          if (buffer.length > 0) {
+            fileMeta = {
+              buffer,
+              mimetype: part.mimetype,
+              filename: part.filename,
+            };
+          }
+        } else {
+          bodyData[part.fieldname] = part.value;
+        }
+      }
+
       const result = await this.plantsBusiness.updatePlant(
         userId,
         userRole,
         request.params.id,
-        request.body,
+        bodyData as UpdatePlantDTO,
+        fileMeta,
       );
       return reply.code(200).send(result);
     } catch (err: unknown) {

@@ -20,9 +20,15 @@ import {
   ConnectDeviceDTO,
 } from "./plants.types";
 import { plantSocketManager } from "./plants.sockets";
+import multipart from "@fastify/multipart";
 
 export async function plantsRoutes(fastify: FastifyInstance) {
   await fastify.register(fastifyWebSocket);
+  await fastify.register(multipart, {
+    limits: {
+      fileSize: 50 * 1024 * 1024,
+    },
+  });
 
   fastify.get("/ws/device", { websocket: true }, (socket: any, req) => {
     const query = req.query as { plantId?: string };
@@ -43,7 +49,7 @@ export async function plantsRoutes(fastify: FastifyInstance) {
     );
   });
 
-  fastify.register(async (protectedInstance) => {
+  fastify.register(async (protectedInstance: FastifyInstance) => {
     protectedInstance.addHook("preHandler", protectedInstance.verifyAuthToken);
 
     protectedInstance.post<{ Body: CreatePlantDTO }>(

@@ -28,7 +28,7 @@ export async function usersRoutes(fastify: FastifyInstance) {
     usersController.createPublic.bind(usersController),
   );
 
-  fastify.register(async (protectedInstance) => {
+  fastify.register(async (protectedInstance: FastifyInstance) => {
     protectedInstance.addHook("preHandler", protectedInstance.verifyAuthToken);
 
     protectedInstance.get(
