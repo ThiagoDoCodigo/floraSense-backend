@@ -30,6 +30,7 @@ export type SensorReadingResponseDTO = Omit<
   isRead: boolean;
   parametersIdeas: string | null;
   created_at: Date;
+  updated_at: Date;
   plant?: {
     id: string;
     name: string;
