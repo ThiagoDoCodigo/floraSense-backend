@@ -15,20 +15,18 @@ export class SyncService {
     const plantWhere: any = { userId };
 
     if (lastSync) {
-      plantWhere.updated_at = { [Op.gt]: new Date(lastSync) };
+      const syncDate = new Date(lastSync);
+      if (!isNaN(syncDate.getTime())) {
+        plantWhere.updated_at = { [Op.gt]: syncDate };
+      }
     }
 
-    const plants = await Plant.findAll({
+    let plants = await Plant.findAll({
       where: plantWhere,
       paranoid: false,
       limit: LIMIT,
       order: [["updated_at", "DESC"]],
     });
-
-    const deletedPlantIds = plants
-      .filter((p) => p.deleted_at !== null)
-      .map((p) => p.id);
-    const updatedPlants = plants.filter((p) => p.deleted_at === null);
 
     const userPlants = await Plant.findAll({
       where: { userId },
@@ -40,7 +38,10 @@ export class SyncService {
     const readingWhere: any = { plantId: { [Op.in]: plantIds } };
 
     if (lastSync) {
-      readingWhere.updated_at = { [Op.gt]: new Date(lastSync) };
+      const syncDate = new Date(lastSync);
+      if (!isNaN(syncDate.getTime())) {
+        readingWhere.updated_at = { [Op.gt]: syncDate };
+      }
     }
 
     const readings = await SensorReading.findAll({
@@ -50,10 +51,33 @@ export class SyncService {
       order: [["updated_at", "DESC"]],
     });
 
+    const readingPlantIds = [...new Set(readings.map((r) => r.plantId))];
+
+    const missingPlantIds = readingPlantIds.filter(
+      (id) => !plants.some((p) => p.id === id),
+    );
+
+    if (missingPlantIds.length > 0) {
+      const missingPlants = await Plant.findAll({
+        where: { id: { [Op.in]: missingPlantIds } },
+        paranoid: false,
+      });
+      plants = plants.concat(missingPlants);
+    }
+
+    const deletedPlantIds = plants
+      .filter((p) => p.deleted_at !== null)
+      .map((p) => p.id);
+    const updatedPlants = plants
+      .filter((p) => p.deleted_at === null)
+      .map((p) => p.toJSON());
+
     const deletedReadingIds = readings
       .filter((r) => r.deleted_at !== null)
       .map((r) => r.id);
-    const updatedReadings = readings.filter((r) => r.deleted_at === null);
+    const updatedReadings = readings
+      .filter((r) => r.deleted_at === null)
+      .map((r) => r.toJSON());
 
     return {
       plants: {

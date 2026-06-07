@@ -45,6 +45,7 @@ export class SensorReadingsBusiness implements ISensorReadingsBusiness {
       created_at: reading.created_at,
       plant: reading.plant
         ? {
+            id: reading.plant.id,
             name: reading.plant.name,
             especie: reading.plant.especie,
           }
