@@ -43,6 +43,7 @@ export class SensorReadingsBusiness implements ISensorReadingsBusiness {
       parametersIdeas: reading.parametersIdeas,
       levelUrgent: reading.levelUrgent,
       created_at: reading.created_at,
+      updated_at: reading.updated_at,
       plant: reading.plant
         ? {
             id: reading.plant.id,
