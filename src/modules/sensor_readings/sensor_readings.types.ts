@@ -31,6 +31,7 @@ export type SensorReadingResponseDTO = Omit<
   parametersIdeas: string | null;
   created_at: Date;
   plant?: {
+    id: string;
     name: string;
     especie: string;
   };
