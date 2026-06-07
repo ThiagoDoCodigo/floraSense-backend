@@ -11,4 +11,5 @@ export type SyncDeltaResponseDTO = {
     updated: any[];
     deletedIds: string[];
   };
+  nextSyncToken: string;
 };
