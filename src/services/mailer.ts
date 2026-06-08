@@ -10,6 +10,9 @@ export class Mailer {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    tls: {
+      rejectUnauthorized: false,
+    },
   });
 
   static async send(to: string, subject: string, html: string) {
@@ -22,6 +25,8 @@ export class Mailer {
       });
       return info;
     } catch (error) {
+      console.error("====== ERRO REAL DO NODEMAILER ======", error);
+
       throw new CustomError(
         "Não foi possível enviar o e-mail no momento. Tente novamente mais tarde.",
         500,
