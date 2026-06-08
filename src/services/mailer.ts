@@ -1,8 +1,9 @@
 import nodemailer from "nodemailer";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { CustomError } from "../utils/errors/CustomError";
 
 export class Mailer {
-  private static transporter = nodemailer.createTransport({
+  private static mailOptions: SMTPTransport.Options = {
     host: process.env.EMAIL_HOST,
     port: Number(process.env.EMAIL_PORT),
     secure: Number(process.env.EMAIL_PORT) === 465,
@@ -10,11 +11,13 @@ export class Mailer {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
-    localAddress: "0.0.0.0",
     tls: {
       rejectUnauthorized: false,
-    },
-  });
+      family: 4,
+    } as any,
+  };
+
+  private static transporter = nodemailer.createTransport(Mailer.mailOptions);
 
   static async send(to: string, subject: string, html: string) {
     try {
