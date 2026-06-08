@@ -10,6 +10,7 @@ export class Mailer {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS,
     },
+    localAddress: "0.0.0.0",
     tls: {
       rejectUnauthorized: false,
     },
