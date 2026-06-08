@@ -291,3 +291,53 @@ export const changePasswordSchema: FastifySchema = {
     },
   },
 };
+
+export const forgotPasswordSchema: FastifySchema = {
+  body: {
+    type: "object",
+    required: ["email"],
+    properties: {
+      email: {
+        type: "string",
+        format: "email",
+        errorMessage: {
+          format: "O e-mail informado é inválido.",
+        },
+      },
+    },
+    errorMessage: { required: { email: "O e-mail é obrigatório." } },
+  },
+};
+
+export const resetPasswordSchema: FastifySchema = {
+  body: {
+    type: "object",
+    required: ["email", "code", "newPassword"],
+    properties: {
+      email: { type: "string", format: "email" },
+      code: {
+        type: "string",
+        minLength: 6,
+        maxLength: 6,
+        errorMessage: {
+          minLength: "O código deve ter 6 dígitos.",
+          maxLength: "O código deve ter 6 dígitos.",
+        },
+      },
+      newPassword: {
+        type: "string",
+        minLength: 6,
+        errorMessage: {
+          minLength: "A nova senha deve ter no mínimo 6 caracteres.",
+        },
+      },
+    },
+    errorMessage: {
+      required: {
+        email: "O e-mail é obrigatório.",
+        code: "O código de verificação é obrigatório.",
+        newPassword: "A nova senha é obrigatória.",
+      },
+    },
+  },
+};

@@ -14,6 +14,8 @@ import {
 import { User } from "./models/user.model";
 import { handleSequelizeError } from "../../utils/errors/handleSequelizeError";
 import { CustomError } from "../../utils/errors/CustomError";
+import { Mailer } from "../../services/mailer";
+import { resetPasswordTemplate } from "../../templates/email/resetPasswordTemplate";
 
 export class UsersBusiness implements IUsersBusiness {
   private readonly usersService: UsersService;
@@ -274,6 +276,90 @@ export class UsersBusiness implements IUsersBusiness {
       return this.formatResponse(user);
     } catch (err) {
       handleSequelizeError(err, "Busca de Perfil");
+    }
+  }
+
+  public async forgotPassword(email: string): Promise<{ message: string }> {
+    try {
+      const user = await this.usersService.findByEmail(email);
+
+      if (!user) {
+        throw new CustomError("Nenhuma conta encontrada com este e-mail.", 404);
+      }
+
+      if (user.reset_password_expires) {
+        const now = new Date();
+        const expiresAt = new Date(user.reset_password_expires);
+        if (expiresAt > now) {
+          throw new CustomError(
+            "Um código já foi gerado recentemente. Por favor, aguarde 5 minutos para solicitar um novo.",
+            429,
+          );
+        }
+      }
+
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      const expires = new Date(Date.now() + 1000 * 60 * 5);
+
+      await this.usersService.saveResetToken(user.id, code, expires);
+
+      await Mailer.send(
+        user.email,
+        "FloraSense - Código de Recuperação",
+        resetPasswordTemplate.resetCode(user.name, code),
+      );
+
+      return { message: "Código enviado com sucesso para o seu e-mail." };
+    } catch (err) {
+      handleSequelizeError(err, "Recuperação de Senha");
+    }
+  }
+
+  public async resetPassword(
+    data: import("./user.types").ResetPasswordDTO,
+  ): Promise<{ message: string }> {
+    try {
+      const user = await this.usersService.findByEmail(data.email);
+
+      if (!user) {
+        throw new CustomError("Conta não encontrada.", 404);
+      }
+
+      if (user.reset_password_token !== data.code) {
+        throw new CustomError("O código informado é inválido.", 400);
+      }
+
+      if (
+        !user.reset_password_expires ||
+        new Date(user.reset_password_expires) < new Date()
+      ) {
+        throw new CustomError("O código expirou. Solicite um novo.", 400);
+      }
+
+      const isSamePassword = await bcrypt.compare(
+        data.newPassword,
+        user.password,
+      );
+      if (isSamePassword) {
+        throw new CustomError("A nova senha deve ser diferente da atual.", 400);
+      }
+
+      const hashedNewPassword = await bcrypt.hash(
+        data.newPassword,
+        this.SALT_ROUNDS,
+      );
+
+      await this.usersService.updatePasswordAndClearToken(
+        user.id,
+        hashedNewPassword,
+      );
+
+      return {
+        message:
+          "Sua senha foi redefinida com sucesso! Você já pode fazer login.",
+      };
+    } catch (err) {
+      handleSequelizeError(err, "Redefinição de Senha");
     }
   }
 }

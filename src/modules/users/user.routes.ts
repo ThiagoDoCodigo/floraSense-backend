@@ -8,6 +8,8 @@ import {
   updateUserSchemaSelf,
   createUserSchemaPublic,
   changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from "./user.schema";
 import { requireRole } from "../../middlewares/roleGuard";
 import {
@@ -17,6 +19,9 @@ import {
   UpdateUserSelfDTO,
   UpdateUserAdminDTO,
   ListUsersParams,
+  ChangePasswordDTO,
+  ForgotPasswordDTO,
+  ResetPasswordDTO,
 } from "./user.types";
 
 export async function usersRoutes(fastify: FastifyInstance) {
@@ -26,6 +31,18 @@ export async function usersRoutes(fastify: FastifyInstance) {
       schema: createUserSchemaPublic,
     },
     usersController.createPublic.bind(usersController),
+  );
+
+  fastify.post<{ Body: ForgotPasswordDTO }>(
+    "/forgot-password",
+    { schema: forgotPasswordSchema },
+    usersController.forgotPassword.bind(usersController),
+  );
+
+  fastify.post<{ Body: ResetPasswordDTO }>(
+    "/reset-password",
+    { schema: resetPasswordSchema },
+    usersController.resetPassword.bind(usersController),
   );
 
   fastify.register(async (protectedInstance: FastifyInstance) => {
@@ -87,7 +104,7 @@ export async function usersRoutes(fastify: FastifyInstance) {
       usersController.deleteAdmin.bind(usersController),
     );
 
-    protectedInstance.patch<{ Body: import("./user.types").ChangePasswordDTO }>(
+    protectedInstance.patch<{ Body: ChangePasswordDTO }>(
       "/self/password",
       {
         schema: changePasswordSchema,

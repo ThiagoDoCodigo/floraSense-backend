@@ -67,4 +67,33 @@ export class UsersService implements IUsersService {
   public async findWithPasswordById(id: string): Promise<User | null> {
     return await User.unscoped().findByPk(id);
   }
+
+  public async findByEmail(email: string): Promise<User | null> {
+    return await User.unscoped().findOne({ where: { email } });
+  }
+
+  public async saveResetToken(
+    id: string,
+    token: string | null,
+    expires: Date | null,
+  ): Promise<void> {
+    await User.update(
+      { reset_password_token: token, reset_password_expires: expires },
+      { where: { id } },
+    );
+  }
+
+  public async updatePasswordAndClearToken(
+    id: string,
+    passwordHash: string,
+  ): Promise<void> {
+    await User.update(
+      {
+        password: passwordHash,
+        reset_password_token: null,
+        reset_password_expires: null,
+      },
+      { where: { id } },
+    );
+  }
 }

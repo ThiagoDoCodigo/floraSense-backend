@@ -43,3 +43,13 @@ export type ChangePasswordDTO = {
   currentPassword: string;
   newPassword: string;
 };
+
+export type ForgotPasswordDTO = {
+  email: string;
+};
+
+export type ResetPasswordDTO = {
+  email: string;
+  code: string;
+  newPassword: string;
+};

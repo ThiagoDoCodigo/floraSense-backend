@@ -8,6 +8,9 @@ import {
   ListUsersParams,
   UpdateUserSelfDTO,
   UpdateUserAdminDTO,
+  ChangePasswordDTO,
+  ForgotPasswordDTO,
+  ResetPasswordDTO,
 } from "./user.types";
 
 export class UsersController {
@@ -122,7 +125,7 @@ export class UsersController {
   }
 
   public async changePassword(
-    request: FastifyRequest<{ Body: import("./user.types").ChangePasswordDTO }>,
+    request: FastifyRequest<{ Body: ChangePasswordDTO }>,
     reply: FastifyReply,
   ) {
     try {
@@ -152,6 +155,32 @@ export class UsersController {
       }
 
       const result = await this.usersBusiness.getMe(userId);
+      return reply.code(200).send(result);
+    } catch (err: unknown) {
+      return sendError(reply, err);
+    }
+  }
+
+  public async forgotPassword(
+    request: FastifyRequest<{ Body: ForgotPasswordDTO }>,
+    reply: FastifyReply,
+  ) {
+    try {
+      const result = await this.usersBusiness.forgotPassword(
+        request.body.email,
+      );
+      return reply.code(200).send(result);
+    } catch (err: unknown) {
+      return sendError(reply, err);
+    }
+  }
+
+  public async resetPassword(
+    request: FastifyRequest<{ Body: ResetPasswordDTO }>,
+    reply: FastifyReply,
+  ) {
+    try {
+      const result = await this.usersBusiness.resetPassword(request.body);
       return reply.code(200).send(result);
     } catch (err: unknown) {
       return sendError(reply, err);
