@@ -9,9 +9,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "test": "jest --verbose",
-    "test:unit": "jest -c jest.unit.config.ts --runInBand --verbose",
-    "test:integration": "cross-env NODE_ENV=test jest -c jest.integration.config.ts --runInBand --verbose",
-    "test:e2e": "cross-env NODE_ENV=test jest -c jest.e2e.config.ts --runInBand --verbose",
+    "test:unit": "jest -c jest.unit.config.js --runInBand --verbose",
+    "test:integration": "cross-env NODE_ENV=test jest -c jest.integration.config.js --runInBand --verbose",
+    "test:e2e": "cross-env NODE_ENV=test jest -c jest.e2e.config.js --runInBand --verbose",
     "sync": "ts-node -r dotenv/config src/data/sync.ts"
   },
   "keywords": [],
